@@ -62,13 +62,13 @@ def get_product_info(link):
                 else:
                     rating_values.append(n.find('div', class_='right').getText())
             product_data['Название'] = name.getText()
-            product_data['Общий рейтинг'] = rating_total.getText()
-            product_data['Безопасность'] = rating_values[0]
-            product_data['Натуральность'] = rating_values[1]
-            product_data['Пищевая ценность'] = rating_values[2]
+            product_data['Общий рейтинг'] = int(rating_total.getText())
+            product_data['Безопасность'] = int(rating_values[0])
+            product_data['Натуральность'] = int(rating_values[1])
+            product_data['Пищевая ценность'] = int(rating_values[2])
             # Не у всех товаров есть этот параметр
             try:
-                product_data['Качество'] = rating_values[3]
+                product_data['Качество'] = int(rating_values[3])
             except:
                 product_data['Качество'] = 'None'
             product_info.append(product_data)
