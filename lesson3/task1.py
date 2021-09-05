@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup as bs
-import json
-from pprint import pprint as pp
+from pymongo import MongoClient
 
 
 # Получение супа, обьеденил два запроса в один
@@ -40,6 +39,7 @@ def get_product_info(link):
     if pagination == 0:
         pagination = 2
     product_info = []
+    id = 1
     for page in range(1, pagination):
         print(f'            Сканирование страницы {page} из {pagination - 1}')
         soup = get_soup(link + param + str(page))
@@ -55,48 +55,51 @@ def get_product_info(link):
                 break
             rating_block = i.find('div', class_='rating-block')
             rating_values = []
-            # Я не придумал, как иначе избавиться от этих символов
-            for n in rating_block:
-                if n == '\n':
-                    continue
-                else:
-                    rating_values.append(n.find('div', class_='right').getText())
-            product_data['Название'] = name.getText()
-            product_data['Общий рейтинг'] = int(rating_total.getText())
-            product_data['Безопасность'] = int(rating_values[0])
-            product_data['Натуральность'] = int(rating_values[1])
-            product_data['Пищевая ценность'] = int(rating_values[2])
-            # Не у всех товаров есть этот параметр
             try:
-                product_data['Качество'] = int(rating_values[3])
+                for n in rating_block:
+                    if n == '\n':
+                        continue
+                    else:
+                        rating_values.append(n.find('div', class_='right').getText())
+                product_data['_id'] = id
+                id += 1
+                product_data['Название'] = name.getText()
+                product_data['Общий рейтинг'] = int(rating_total.getText())
+                product_data['Безопасность'] = int(rating_values[0])
+                product_data['Натуральность'] = int(rating_values[1])
+                product_data['Пищевая ценность'] = int(rating_values[2])
+                # Не у всех товаров есть этот параметр
+                try:
+                    product_data['Качество'] = int(rating_values[3])
+                except:
+                    product_data['Качество'] = 'None'
+                product_info.append(product_data)
             except:
-                product_data['Качество'] = 'None'
-            product_info.append(product_data)
+                continue
     return product_info
 
 
 url = 'https://roscontrol.com'
 catalog = get_catalog_info(url + '/category/produkti/')
 
-result = []
+client = MongoClient('127.0.0.1', 27017)
+client.drop_database('Products')
+db = client['Products']
+
 for i in catalog:
     print('Поиск в категории {}...'.format(i['name']))
     subcatalog = get_catalog_info(url + i['url'])
-    # Немного колхозно, но мне нужно было повести сбор по разным путям в зависимости от наличия подкатегорий
     try:
         for n in subcatalog:
             print('     Поиск в подкатегории {}...'.format(n['name']))
-            catalog_data = {}
-            catalog_data['Категория'] = i['name']
-            catalog_data['Подкатегория'] = n['name']
-            catalog_data['Перечень продуктов'] = get_product_info(url + n['url'])
-            result.append(catalog_data)
-    except:
-        catalog_data = {}
-        catalog_data['Категория'] = i['name']
-        catalog_data['Подкатегория'] = 'None'
-        catalog_data['Перечень продуктов'] = get_product_info(url + i['url'])
-        result.append(catalog_data)
+            collection = db[n['name']]
+            category_data = get_product_info(url + n['url'])
+            try:
+                collection.insert_many(category_data)
+            except:
+                continue
 
-with open('task2.json', 'w', encoding='utf-8') as f:
-    json.dump(result, f, ensure_ascii=False, indent=4)
+    except:
+        collection = db[i['name']]
+        category_data = get_product_info(url + i['url'])
+        collection.insert_many(get_product_info(url + i['url']))
