@@ -1,11 +1,30 @@
 import requests
 import json
+# Импорт данных для авторизации. Положены в отдельный файл, добавленный в .gitignore
+import credentials as cd
+
+# Получение токена
+auth_url = 'https://accounts.spotify.com/api/token'
+client_id = cd.client_id
+client_secret = cd.client_secret
+
+auth_response = requests.post(auth_url, {'grant_type':'client_credentials', 'client_id':client_id,'client_secret':client_secret})
+auth_data = auth_response.json()
+access_token = auth_data['access_token']
+
 
 url = "https://api.spotify.com/v1/"
 headers = {
-    'Authorization': 'Bearer {token}'.format(token='BQCm-oJZKWhY6PUBeyIOMNC3LFQCswYQKWj65hc3xPubfTWB9ML1e5AFEXlwNFUlA1ONJAbgQH0QNLzAg6Fz4VlbqHlK3pXq1egpxh1aAubLYLsYdLcq6EIcW0wYH_n22MufyLwmOjnoGeKErw_CBgwJg770lvQCCYIaWC10HMb7h2_EAPym7w')
+    'Authorization': 'Bearer {token}'.format(token=access_token)
 }
-tracks = requests.get(f"{url}me/tracks",headers=headers)
+
+# Les Zeppelin
+artist_id = '36QJpDe2go2KgaRleHCDTp'
+
+# Получение списка альбомов
+tracks = requests.get(f"{url}artists/{artist_id}/albums",headers=headers)
+
+# Добавление в файл
 data = json.loads(tracks.content)
 with open('task2.json', 'w') as f:
     json.dump(data, f, indent=4)
