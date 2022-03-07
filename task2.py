@@ -16,10 +16,12 @@ driver.get(url)
 # Хотел реализовать через wait.until,то не до конца разобрался как он работает
 time.sleep(3)
 
-close_popup = driver.find_element_by_xpath('//mvid-icon[contains(@class,"modal-layout__close ng-tns-c72-1 ng-star-inserted")]')
-close_popup.click()
+# close_popup = driver.find_element_by_xpath('//mvid-icon[contains(@class,"modal-layout__close ng-tns-c72-1 ng-star-inserted")]')
+# close_popup.click()
+
+
 # Страница подгружается динамически по мере прокрутки
-driver.execute_script("window.scrollTo(0,2000)")
+driver.execute_script("window.scrollTo(0,1500)")
 
 time.sleep(3)
 
