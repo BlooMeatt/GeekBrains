@@ -2,7 +2,7 @@ from lxml import html
 import requests
 from pymongo import MongoClient
 
-url = 'https://yandex.ru/news/'
+url = 'https://yandex.ru/news/region/moscow'
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36'
@@ -17,10 +17,11 @@ collection = db.news
 
 dom = html.fromstring(response.text)
 
-items = dom.xpath("//article[contains(@class,'mg-card mg-card_flexible-half mg-card_type_image mg-grid__item') or "
+items = dom.xpath("//div[contains(@class,'mg-card mg-card_flexible-half mg-card_type_image mg-grid__item') or "
                   "contains(@class,'mg-card mg-card_flexible-single mg-card_media-fixed-height mg-card_type_image mg-grid__item') or "
                   "contains(@class,'mg-card mg-card_flexible-single mg-card_type_image mg-grid__item') or "
                   "contains(@class,'mg-card mg-card_type_image mg-card_stretching mg-card_flexible-double mg-grid__item')]")
+
 news = []
 for i in items:
     news_data = {}
