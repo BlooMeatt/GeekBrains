@@ -56,29 +56,20 @@ filter = {
 
 }
 
-# while True:
-#     print(f'Сканирование страницы {page}')
-#     soup = get_soup(url+target,filter)
-#     base_soup = soup.findAll('div', {'data-qa': 'vacancy-serp__results'})
-#     full_data.append(page_parse(base_soup))
-#     pagination = soup.find('a', {'data-qa': 'pager-next'})
-#     try:
-#         next_page = pagination['href']
-#         target = next_page
-#         page += 1
-#     except:
-#         break
-
-soup = get_soup(url+target,filter)
-base_soup = soup.findAll('div', class_='vacancy-serp-item vacancy-serp-item_redesigned')
-data = page_parse(base_soup,full_data)
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36',
-}
-response = requests.get(url+target,headers=headers,params=filter)
-print(response.url)
-with open('debug.txt', 'w', encoding='utf-8') as f:
-    f.write(response.text)
+while True:
+    print(f'Сканирование страницы {page}')
+    soup = get_soup(url+target,filter)
+    base_soup = soup.findAll('div',class_='vacancy-serp-item-body')
+    full_data.append(page_parse(base_soup,full_data))
+    pagination = soup.find('a', {'data-qa': 'pager-next'})
+    try:
+        next_page = pagination['href']
+        target = next_page
+        page += 1
+    except:
+        break
 
 print(f'Готово! Всего обработано вакансий: {len(full_data)}')
+
+with open('task1.json', 'w', encoding='utf-8') as f:
+    json.dump(full_data, f, ensure_ascii=False, indent=4)
